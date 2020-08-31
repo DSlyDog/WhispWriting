@@ -14,11 +14,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -28,6 +27,9 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,8 +38,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AccountSettings extends AppCompatActivity {
 
-    private DatabaseReference userDatabase;
+    private FirebaseFirestore userDatabase;
     private FirebaseUser currentUser;
+    private DocumentReference userDoc;
     private CircleImageView pImage;
     private TextView uName;
     private TextView uStatus;
@@ -57,6 +60,11 @@ public class AccountSettings extends AppCompatActivity {
         getSupportActionBar().setTitle("");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        progressDialog = new ProgressDialog(AccountSettings.this);
+        progressDialog.setTitle("Loading profile");
+        progressDialog.setMessage("Please wait");
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
 
         uName = (TextView) findViewById(R.id.DisplayNameText);
         pImage = (CircleImageView) findViewById(R.id.profile_image);
@@ -64,45 +72,46 @@ public class AccountSettings extends AppCompatActivity {
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         uid = currentUser.getUid();
-        userDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(uid);
-        userDatabase.keepSynced(true);
+        userDatabase = FirebaseFirestore.getInstance();
+        userDoc = userDatabase.collection("Users").document(uid);
 
         profileImageStorage = FirebaseStorage.getInstance().getReference();
 
-        userDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String name = dataSnapshot.child("name").getValue().toString();
-                final String image = dataSnapshot.child("image").getValue().toString();
-                String status = dataSnapshot.child("status").getValue().toString();
-                String thumbImage = dataSnapshot.child("thumb_image").getValue().toString();
-
-                if (name.length() >= 22){
-                    uName.setTextSize(22);
-                }
-
-                uName.setText(name);
-                uStatus.setText(status);
-                if (!image.equals("default")) {
-                    Picasso.get().load(image).networkPolicy(NetworkPolicy.OFFLINE)
-                            .into(pImage, new Callback() {
-                                @Override
-                                public void onSuccess() {
-                                    // do nohthing
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                    Picasso.get().load(image).into(pImage);
-                                }
-                            });
-                }
-
-            }
+        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()){
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()){
+                        String name = document.getString("name");
+                        final String image = document.getString("image");
+                        String status = document.getString("status");
+                        String thumbImage = document.getString("thumb_image");
 
+                        if (name.length() >= 22){
+                            uName.setTextSize(22);
+                        }
+
+                        uName.setText(name);
+                        uStatus.setText(status);
+                        if (!image.equals("default")) {
+                            Picasso.get().load(image).networkPolicy(NetworkPolicy.OFFLINE)
+                                    .into(pImage, new Callback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            // do nohthing
+                                        }
+
+                                        @Override
+                                        public void onError(Exception e) {
+                                            Picasso.get().load(image).into(pImage);
+                                        }
+                                    });
+                        }
+                        progressDialog.dismiss();
+                    }
+                }
             }
         });
         statusButton = (Button) findViewById(R.id.statusButton);
@@ -164,12 +173,26 @@ public class AccountSettings extends AppCompatActivity {
                         filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                String downloadUrl = uri.toString();
-
-                                userDatabase.child("image").setValue(downloadUrl).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                final String downloadUrl = uri.toString();
+                                Map<String, Object> newUrl = new HashMap<>();
+                                newUrl.put("image", downloadUrl);
+                                DocumentReference userDoc =  userDatabase.collection("Users").document(uid);
+                                userDoc.set(newUrl, SetOptions.mergeFields("image")).addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()) {
+                                            Picasso.get().load(downloadUrl).networkPolicy(NetworkPolicy.OFFLINE)
+                                                    .into(pImage, new Callback() {
+                                                        @Override
+                                                        public void onSuccess() {
+                                                            // do nohthing
+                                                        }
+
+                                                        @Override
+                                                        public void onError(Exception e) {
+                                                            Picasso.get().load(downloadUrl).into(pImage);
+                                                        }
+                                                    });
                                             progressDialog.dismiss();
                                             Toast.makeText(AccountSettings.this, "Success", Toast.LENGTH_SHORT).show();
                                         } else {

@@ -8,11 +8,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,7 +18,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-public class maindrawer extends AppCompatActivity
+public class Chat extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public Intent lastIntent;
@@ -31,30 +29,20 @@ public class maindrawer extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maindrawer);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        Intent intent = new Intent (this, maindrawer.class);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+            startActivity(new Intent(this, login.class));
+        }
+        setContentView(R.layout.activity_chat);
+        Toolbar toolbar1 = (Toolbar) findViewById(R.id.chatToolbar);
+        setSupportActionBar(toolbar1);
+        getSupportActionBar().setTitle("Chat");
+        Intent intent = new Intent(this, Chat.class);
         lastIntent = intent;
         createNotificationChannel();
 
-        if (WhispWriting.mainEnabled.getLaunchChat()){
-            Intent chatLaunch = new Intent(this, login.class);
-            WhispWriting.mainEnabled.setLaunchChat(false);
-            startActivity(chatLaunch);
-        }
-
-        Button button = findViewById(R.id.lebutton);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView textView = (TextView) findViewById(R.id.textView3);
-                textView.setText("The words hath changed!");
-            }
-        });
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar1, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -73,30 +61,36 @@ public class maindrawer extends AppCompatActivity
             }
         }
         catch (Exception e){
-        startActivity(lastIntent);
+            startActivity(lastIntent);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.maindrawer, menu);
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.chat, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        super.onOptionsItemSelected(item);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (item.getItemId() == R.id.action_logout){
+            FirebaseAuth.getInstance().signOut();
+            Intent loginSplash = new Intent(this, login.class);
+            startActivity(loginSplash);
+        }
+        if (item.getItemId() == R.id.action_accounts){
+            Intent accountSettings = new Intent(this, AccountSettings.class);
+            startActivity(accountSettings);
+        }
+        if (item.getItemId() == R.id.action_usersList){
+            Intent userList = new Intent(this, UserList.class);
+            startActivity(userList);
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -105,24 +99,19 @@ public class maindrawer extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_home) {
-            // Handle the camera action
-            Intent intent = new Intent (this, maindrawer.class);
-            startActivity(intent);
-        }
-        if (id == R.id.nav_literature) {
-            Intent intent = new Intent(this, literature.class);
-            startActivity(intent);
-        }
-        if (id == R.id.nav_drawings) {
-
-        }
-        if (id == R.id.nav_videos) {
-
-        }
         if (id == R.id.nav_chat) {
-            Intent intent = new Intent(this, login.class);
+            // Handle the camera action
+            if (FirebaseAuth.getInstance().getCurrentUser() == null){
+                startActivity(new Intent(this, login.class));
+            }
+            Intent intent = new Intent (this, Chat.class);
             startActivity(intent);
+        }
+        if (id == R.id.nav_friends){
+            startActivity(new Intent(this, FriendsList.class));
+        }
+        if (id == R.id.nav_search_users){
+            startActivity(new Intent(this, UserList.class));
         }
         if (id == R.id.nav_share) {
 

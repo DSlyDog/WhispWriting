@@ -3,27 +3,32 @@ package net.whispwriting.whispwriting;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import com.google.android.material.textfield.TextInputLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class UsernameUpdate extends AppCompatActivity {
 
     private Toolbar toolbar;
     private TextInputLayout setUser;
     private Button setUserButton;
-    private DatabaseReference database;
+    private FirebaseFirestore database;
     private FirebaseUser currentUser;
     private ProgressDialog progressDialogue;
 
@@ -37,8 +42,8 @@ public class UsernameUpdate extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = currentUser.getUid();
-        database = FirebaseDatabase.getInstance().getReference().child("Users").child(uid);
+        final String uid = currentUser.getUid();
+        database = FirebaseFirestore.getInstance();
 
         setUser = (TextInputLayout) findViewById(R.id.setUser);
         setUserButton = (Button) findViewById(R.id.setUserButton);
@@ -55,7 +60,10 @@ public class UsernameUpdate extends AppCompatActivity {
                 progressDialogue.setMessage("Please wait");
                 progressDialogue.show();
                 String username = setUser.getEditText().getText().toString();
-                database.child("name").setValue(username).addOnCompleteListener(new OnCompleteListener<Void>() {
+                DocumentReference userDoc = database.collection("Users").document(uid);
+                Map<String, Object> newName = new HashMap<>();
+                newName.put("name", username);
+                userDoc.set(newName, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()){

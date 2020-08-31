@@ -9,6 +9,14 @@
             android:layout_width="wrap_content"
             android:title="Chat" />
         <item
+            android:id="@+id/nav_friends"
+            android:layout_width="wrap_content"
+            android:title="Friends" />
+        <item
+            android:id="@+id/nav_requests"
+            android:layout_width="wrap_content"
+            android:title="Friend Requests" />
+        <item
             android:id="@+id/nav_home"
             android:title="Search Users" />
         <item

@@ -29,7 +29,7 @@
         <activity
             android:name=".UserList"
             android:label="WhispWriting"
-            android:parentActivityName=".chat">
+            android:parentActivityName=".Chat">
 
         </activity>
         <activity
@@ -55,7 +55,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".maindrawer"
+            android:name=".Chat"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -70,16 +70,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.LITERATURE" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".chat"
-            android:label="WhispWriting"
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.CHAT" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -150,10 +140,21 @@
         <activity
             android:name=".AccountSettings"
             android:label="WhispWriting"
-            android:parentActivityName=".chat"
+            android:parentActivityName=".Chat"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.ACCOUNTSETTINGS" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".FriendsList"
+            android:label="WhispWriting"
+            android:parentActivityName=".Chat"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.FRIENDSFRAGMENT" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

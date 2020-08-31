@@ -47,4 +47,9 @@ public class Users {
     public void setThumbImage(String image) {
         this.thumbImage = image;
     }
+
+    @Override
+    public String toString(){
+        return "name: " + name + ", status: " + status + ", image: " + image;
+    }
 }

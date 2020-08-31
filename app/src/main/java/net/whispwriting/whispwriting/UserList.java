@@ -7,10 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 
 import androidx.annotation.NonNull;
@@ -23,7 +22,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class UserList extends AppCompatActivity {
 
     private RecyclerView usersListPage;
-    private DatabaseReference usersDatabase;
+    private FirebaseFirestore usersDatabase;
     private CircleImageView userListImg;
 
     @Override
@@ -36,7 +35,7 @@ public class UserList extends AppCompatActivity {
         getSupportActionBar().setTitle("Users List");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        usersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        usersDatabase = FirebaseFirestore.getInstance();
 
         usersListPage = (RecyclerView) findViewById(R.id.UserListPage);
         usersListPage.setHasFixedSize(true);
@@ -48,8 +47,8 @@ public class UserList extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseRecyclerOptions<Users> options = new FirebaseRecyclerOptions.Builder<Users>().setQuery(usersDatabase, Users.class).build();
-        FirebaseRecyclerAdapter adapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(options) {
+        FirestoreRecyclerOptions<Users> options = new FirestoreRecyclerOptions.Builder<Users>().setQuery(usersDatabase.collection("Users"), Users.class).build();
+        FirestoreRecyclerAdapter<Users, UsersViewHolder> adapter = new FirestoreRecyclerAdapter<Users, UsersViewHolder>(options) {
             @Override
             public UsersViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
                 View view = LayoutInflater.from(parent.getContext())
@@ -63,7 +62,7 @@ public class UserList extends AppCompatActivity {
                 usersViewHolder.setStatus(users.status);
                 usersViewHolder.setImg(users.image);
 
-                final String userID = getRef(i).getKey();
+                final String userID = Long.toString(getItemId(i));
                 usersViewHolder.mView.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view){

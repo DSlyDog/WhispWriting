@@ -28,7 +28,7 @@ public class WhispFirebaseMessagingService extends FirebaseMessagingService {
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, maindrawer.CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Chat.CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon_round_notif)
                 .setContentTitle(messageTitle)
                 .setContentText(messageBody)

@@ -9,7 +9,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 
-public class literature extends maindrawer
+public class literature extends Chat
         implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override

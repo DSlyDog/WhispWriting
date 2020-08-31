@@ -20,8 +20,8 @@ class PagerSection extends FragmentPagerAdapter {
                 ChatsFragment chatFragment = new ChatsFragment();
                 return chatFragment;
             case 2:
-                FriendsFragment friendFragment = new FriendsFragment();
-                return friendFragment;
+                FriendsList friendFragment = new FriendsList();
+                return null;
 
             default:
                 return null;

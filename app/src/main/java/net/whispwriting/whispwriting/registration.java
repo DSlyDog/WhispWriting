@@ -15,10 +15,13 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +38,9 @@ public class registration extends AppCompatActivity {
     private Toolbar rToolbar;
     private ProgressDialog rRegProgress;
     private DatabaseReference cDatabase;
+    private FirebaseFirestore firestore;
+    private CollectionReference users;
+    private DocumentReference userRef;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +50,9 @@ public class registration extends AppCompatActivity {
         setSupportActionBar(rToolbar);
         getSupportActionBar().setTitle("Account Registration");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        firestore = FirebaseFirestore.getInstance();
+        users = firestore.collection("Users");
 
         rRegProgress = new ProgressDialog(this);
 
@@ -81,23 +90,23 @@ public class registration extends AppCompatActivity {
             if (task.isSuccessful()) {
                 FirebaseUser curretnUser = FirebaseAuth.getInstance().getCurrentUser();
                 String uid = curretnUser.getUid();
-                cDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(uid);
-                String deviceToken = FirebaseInstanceId.getInstance().getToken();
+                userRef = firestore.collection("Users").document(uid);
 
-                HashMap<String, String> userMap = new HashMap<>();
+                HashMap<String, Object> userMap = new HashMap<>();
                 userMap.put("name", usernameStr);
-                userMap.put("device_token", deviceToken);
                 userMap.put("status", "Hi, I haven't set my status yet.");
                 userMap.put("image", "default");
                 userMap.put("thumb_image", "default");
+                List<String> friends = new ArrayList<>();
+                userMap.put("friends", friends);
 
-                cDatabase.setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                userRef.set(userMap).addOnCompleteListener(new OnCompleteListener() {
                     @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+                    public void onComplete(@NonNull Task task) {
 
                         if (task.isSuccessful()){
                             rRegProgress.dismiss();
-                            Intent chatload = new Intent(registration.this, chat.class);
+                            Intent chatload = new Intent(registration.this, Chat.class);
                             startActivity(chatload);
                             finish();
                         }

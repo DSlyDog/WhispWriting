@@ -10,9 +10,9 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 public class login extends AppCompatActivity
@@ -21,6 +21,7 @@ public class login extends AppCompatActivity
     private Button registryBtn;
     private Button loginBtn;
     private Toolbar rToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,15 +31,18 @@ public class login extends AppCompatActivity
         getSupportActionBar().setTitle("Chat");
 
         mAuth = FirebaseAuth.getInstance();
+    }
 
+    @Override
+    public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, rToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        try {
+            if (drawer.isDrawerOpen(GravityCompat.START)) {
+                drawer.closeDrawer(GravityCompat.START);
+            }
+        }
+        catch (Exception e){
+        }
     }
 
     @Override
@@ -48,7 +52,7 @@ public class login extends AppCompatActivity
 
         if (id == R.id.nav_home) {
             // Handle the camera action
-            Intent intent = new Intent (this, maindrawer.class);
+            Intent intent = new Intent (this, Chat.class);
             startActivity(intent);
         }
         if (id == R.id.nav_literature) {
@@ -78,7 +82,7 @@ public class login extends AppCompatActivity
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if(currentUser != null){
-            Intent chat = new Intent(this, chat.class);
+            Intent chat = new Intent(this, Chat.class);
             startActivity(chat);
             finish();
         }

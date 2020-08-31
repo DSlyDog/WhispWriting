@@ -15,7 +15,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +32,8 @@ public class LoggingIn extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProgressDialog rLogProgress;
     private DatabaseReference database;
+    private FirebaseFirestore firestore;
+    private CollectionReference users;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,8 @@ public class LoggingIn extends AppCompatActivity {
 
 
         database = FirebaseDatabase.getInstance().getReference().child("Users");
+        firestore = FirebaseFirestore.getInstance();
+        users = firestore.collection("Users");
 
         email = (TextInputLayout) findViewById(R.id.lginemailInput);
         password = (TextInputLayout) findViewById(R.id.lginpasswdIn);
@@ -73,17 +78,9 @@ public class LoggingIn extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             rLogProgress.dismiss();
+                            Intent intent = new Intent(LoggingIn.this, Chat.class);
+                            startActivity(intent);
 
-                            String deviceToken = FirebaseInstanceId.getInstance().getToken();
-                            String currentUserId = mAuth.getCurrentUser().getUid();
-                            database.child(currentUserId).child("device_token").setValue(deviceToken).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Intent intent = new Intent(LoggingIn.this, chat.class);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
                         }else{
                             rLogProgress.hide();
                             Toast.makeText(LoggingIn.this, "Login failed. Check the form and try again.", Toast.LENGTH_LONG).show();
