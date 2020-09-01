@@ -31,6 +31,7 @@ public class Chat extends AppCompatActivity
         super.onCreate(savedInstanceState);
         if (FirebaseAuth.getInstance().getCurrentUser() == null){
             startActivity(new Intent(this, login.class));
+            return;
         }
         setContentView(R.layout.activity_chat);
         Toolbar toolbar1 = (Toolbar) findViewById(R.id.chatToolbar);

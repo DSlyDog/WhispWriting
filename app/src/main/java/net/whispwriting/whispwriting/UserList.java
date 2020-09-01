@@ -62,7 +62,7 @@ public class UserList extends AppCompatActivity {
                 usersViewHolder.setStatus(users.status);
                 usersViewHolder.setImg(users.image);
 
-                final String userID = Long.toString(getItemId(i));
+                final String userID = getSnapshots().getSnapshot(i).getId();
                 usersViewHolder.mView.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view){

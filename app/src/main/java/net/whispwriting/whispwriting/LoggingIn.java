@@ -13,10 +13,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+
+import java.util.HashMap;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,10 +31,9 @@ public class LoggingIn extends AppCompatActivity {
     private Toolbar rToolbar;
     private TextInputLayout email;
     private TextInputLayout password;
-    private Button lginButton;
+    private Button loginButton;
     private FirebaseAuth mAuth;
     private ProgressDialog rLogProgress;
-    private DatabaseReference database;
     private FirebaseFirestore firestore;
     private CollectionReference users;
 
@@ -46,16 +48,14 @@ public class LoggingIn extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         rLogProgress = new ProgressDialog(this);
 
-
-        database = FirebaseDatabase.getInstance().getReference().child("Users");
         firestore = FirebaseFirestore.getInstance();
         users = firestore.collection("Users");
 
         email = (TextInputLayout) findViewById(R.id.lginemailInput);
         password = (TextInputLayout) findViewById(R.id.lginpasswdIn);
-        lginButton = (Button) findViewById(R.id.logBtn);
+        loginButton = (Button) findViewById(R.id.logBtn);
 
-        lginButton.setOnClickListener(new View.OnClickListener(){
+        loginButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 String email_str = email.getEditText().getText().toString();
@@ -64,23 +64,40 @@ public class LoggingIn extends AppCompatActivity {
                     rLogProgress.setTitle("Logging in User");
                     rLogProgress.setCanceledOnTouchOutside(false);
                     rLogProgress.show();
-                    loginUser(email_str, password_str);
+                    loginUser(email_str, password_str, firestore);
                 }
             }
             });
     }
 
-    public void loginUser(String email, String password){
+    public void loginUser(String email, String password, final FirebaseFirestore firestore){
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            rLogProgress.dismiss();
-                            Intent intent = new Intent(LoggingIn.this, Chat.class);
-                            startActivity(intent);
-
+                    public void onComplete(@NonNull final Task<AuthResult> loginTask) {
+                        if (loginTask.isSuccessful()) {
+                            FirebaseInstanceId.getInstance().getInstanceId()
+                                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                                            if (task.isSuccessful()) {
+                                                HashMap<String, Object> userMap = new HashMap<>();
+                                                userMap.put("deviceToken", task.getResult().getToken());
+                                                firestore.collection("Users").document(loginTask.getResult().getUser().getUid())
+                                                .set(userMap, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()){
+                                                            rLogProgress.dismiss();
+                                                            Intent intent = new Intent(LoggingIn.this, Chat.class);
+                                                            startActivity(intent);
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
                         }else{
                             rLogProgress.hide();
                             Toast.makeText(LoggingIn.this, "Login failed. Check the form and try again.", Toast.LENGTH_LONG).show();

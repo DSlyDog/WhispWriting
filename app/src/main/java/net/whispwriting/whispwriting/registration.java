@@ -18,6 +18,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,37 +88,43 @@ public class registration extends AppCompatActivity {
     mAuth.createUserWithEmailAndPassword(emailStr, passwordStr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
         @Override
         public void onComplete(@NonNull Task<AuthResult> task) {
-
             if (task.isSuccessful()) {
-                FirebaseUser curretnUser = FirebaseAuth.getInstance().getCurrentUser();
+                final FirebaseUser curretnUser = FirebaseAuth.getInstance().getCurrentUser();
                 String uid = curretnUser.getUid();
                 userRef = firestore.collection("Users").document(uid);
+                FirebaseInstanceId.getInstance().getInstanceId()
+                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                                if (task.isSuccessful()){
+                                    HashMap<String, Object> userMap = new HashMap<>();
+                                    userMap.put("name", usernameStr);
+                                    userMap.put("status", "Hi, I haven't set my status yet.");
+                                    userMap.put("image", "default");
+                                    userMap.put("thumb_image", "default");
+                                    userMap.put("deviceToken", task.getResult().getToken());
+                                    userMap.put("user_id", curretnUser.getUid());
+                                    List<String> friends = new ArrayList<>();
+                                    userMap.put("friends", friends);
 
-                HashMap<String, Object> userMap = new HashMap<>();
-                userMap.put("name", usernameStr);
-                userMap.put("status", "Hi, I haven't set my status yet.");
-                userMap.put("image", "default");
-                userMap.put("thumb_image", "default");
-                List<String> friends = new ArrayList<>();
-                userMap.put("friends", friends);
+                                    userRef.set(userMap).addOnCompleteListener(new OnCompleteListener() {
+                                        @Override
+                                        public void onComplete(@NonNull Task task) {
 
-                userRef.set(userMap).addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
+                                            if (task.isSuccessful()){
+                                                rRegProgress.dismiss();
+                                                Intent chatload = new Intent(registration.this, Chat.class);
+                                                startActivity(chatload);
+                                                finish();
+                                            }
 
-                        if (task.isSuccessful()){
-                            rRegProgress.dismiss();
-                            Intent chatload = new Intent(registration.this, Chat.class);
-                            startActivity(chatload);
-                            finish();
-                        }
+                                        }
+                                    });
+                                }
+                            }
+                        });
 
-                    }
-                });
-
-
-            }
-            else {
+            } else {
                 rRegProgress.hide();
                 Toast.makeText(registration.this, "Unable to register. Check the form and try again.", Toast.LENGTH_LONG).show();
             }
