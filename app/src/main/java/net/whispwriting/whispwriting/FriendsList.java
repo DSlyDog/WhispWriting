@@ -1,5 +1,6 @@
 package net.whispwriting.whispwriting;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -81,7 +83,7 @@ public class FriendsList extends AppCompatActivity {
                                 }
 
                                 @Override
-                                protected void onBindViewHolder(@NonNull UsersViewHolder usersViewHolder, int i, @NonNull Users users) {
+                                protected void onBindViewHolder(@NonNull UsersViewHolder usersViewHolder, int i, @NonNull final Users users) {
                                     if (users != null) {
                                         usersViewHolder.setName(users.name);
                                         usersViewHolder.setStatus(users.status);
@@ -91,9 +93,25 @@ public class FriendsList extends AppCompatActivity {
                                         usersViewHolder.mView.setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View view) {
-                                                Intent profilePage = new Intent(FriendsList.this, ProfileActivity.class);
-                                                profilePage.putExtra("userID", userID);
-                                                startActivity(profilePage);
+                                                CharSequence[] options = new CharSequence[]{"View Profile", "Send Message"};
+                                                AlertDialog.Builder alert = new AlertDialog.Builder(FriendsList.this);
+                                                alert.setTitle(users.name);
+                                                alert.setItems(options, new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                                        if (i == 0){
+                                                            Intent profilePage = new Intent(FriendsList.this, ProfileActivity.class);
+                                                            profilePage.putExtra("userID", userID);
+                                                            startActivity(profilePage);
+                                                        }else if (i == 1){
+                                                            Intent chatIntent = new Intent(FriendsList.this, ConversationActivity.class);
+                                                            chatIntent.putExtra("userID", userID);
+                                                            startActivity(chatIntent);
+                                                        }
+                                                    }
+                                                });
+                                                AlertDialog dialog =  alert.create();
+                                                dialog.show();
                                             }
                                         });
                                     }

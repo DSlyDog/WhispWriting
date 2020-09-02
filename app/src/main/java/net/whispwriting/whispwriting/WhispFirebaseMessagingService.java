@@ -5,10 +5,10 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
 
+import androidx.core.app.NotificationCompat;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-
-import androidx.core.app.NotificationCompat;
 
 public class WhispFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -30,6 +30,7 @@ public class WhispFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Chat.CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon_round_notif)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
                 .setContentTitle(messageTitle)
                 .setContentText(messageBody)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
